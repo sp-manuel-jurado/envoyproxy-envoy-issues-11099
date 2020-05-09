@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  envoy_l1:
+    image: docker.io/envoyproxy/envoy:v1.14.1
+    depends_on:
+      - envoy_l2
+    ports:
+      - "11001:11001"
+    volumes:
+      - ./envoy_l1.yaml:/etc/envoy/envoy.yaml
+
+  envoy_l2:
+    image: docker.io/envoyproxy/envoy:v1.14.1
+    ports:
+      - "10001:10001"
+    volumes:
+      - ./envoy_l2.yaml:/etc/envoy/envoy.yaml
+
+  backend:
+    image: golang:1.13
+    working_dir: /go/github.com/socialpoint/envoyproxy-envoy-issues-11099/service/hello
+    depends_on:
+      - envoy_l1
+      - envoy_l2
+    volumes:
+      - ./service/hello:/go/github.com/socialpoint/envoyproxy-envoy-issues-11099/service/hello
+    ports:
+      - "8888:8888"
+    command: go run main.go
+
+  hello_service_test:
+    image: golang:1.13
+    working_dir: /go/github.com/socialpoint/envoyproxy-envoy-issues-11099/service/hello
+    depends_on:
+      - envoy_l1
+      - envoy_l2
+      - backend
+    volumes:
+      - ./service/hello:/go/github.com/socialpoint/envoyproxy-envoy-issues-11099/service/hello
+    command: make test
