@@ -2,20 +2,22 @@ version: '3'
 
 services:
   envoy_l1:
-    image: docker.io/envoyproxy/envoy:v1.14.1
+    image: docker.io/envoyproxy/envoy-alpine-debug-dev:bcc3050f7385a3f67c1b62b8779c44c7cece6b10
     depends_on:
       - envoy_l2
     ports:
       - "11001:11001"
     volumes:
       - ./envoy_l1.yaml:/etc/envoy/envoy.yaml
+    command: /usr/local/bin/envoy -c /etc/envoy/envoy.yaml -l trace
 
   envoy_l2:
-    image: docker.io/envoyproxy/envoy:v1.14.1
+    image: docker.io/envoyproxy/envoy-alpine-debug-dev:bcc3050f7385a3f67c1b62b8779c44c7cece6b10
     ports:
       - "10001:10001"
     volumes:
       - ./envoy_l2.yaml:/etc/envoy/envoy.yaml
+    command: /usr/local/bin/envoy -c /etc/envoy/envoy.yaml -l trace --base-id 3
 
   backend:
     image: golang:1.13
